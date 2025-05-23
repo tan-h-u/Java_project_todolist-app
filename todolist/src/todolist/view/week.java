@@ -127,7 +127,7 @@ public class week extends Pane {
         }
     }
 
-    private void drawHourRows() {
+    private void drawHourRows() {							//畫出時間刻度與橫線格線
         for (int h = START_HOUR; h <= END_HOUR; h++) {
             double y = HEADER_H + (h - START_HOUR) * ROW_H+ head_add;
 
@@ -144,10 +144,10 @@ public class week extends Pane {
         }
     }
 
-    private void drawVerticalLines() {
+    private void drawVerticalLines() {					//禮拜的垂直分隔線
         for (int i = 0; i <= 7; i++) {
             double x = TIME_COL_W + i * DAY_COL_W;
-            Line vLine = new Line(x, HEADER_H, x, viewHeight);
+            Line vLine = new Line(x, HEADER_H, x, viewHeight - ROW_H);
             vLine.setStroke(Color.web("#e0e0e0"));
             getChildren().add(vLine);
         }
@@ -221,18 +221,20 @@ public class week extends Pane {
 
         // 任務 Pane
         Pane block = new Pane();
-        block.setLayoutX(TIME_COL_W + dayIdx * (DAY_COL_W + HGAP));
-        block.setLayoutY(layoutY + 32 + HGAP); // 32 for header height
+        block.setLayoutX(TIME_COL_W + dayIdx * (DAY_COL_W ));
+        block.setLayoutY(layoutY + 32 + HGAP + head_add + 2); // 32 for header height
         block.setPrefWidth(DAY_COL_W);
         block.setPrefHeight(height);
-        block.setStyle("-fx-background-color:#90caf9; -fx-border-color:black; -fx-border-radius:4; -fx-background-radius:4;");
+        block.setStyle("-fx-background-color:#90caf9;  -fx-border-radius:4; -fx-background-radius:4;");
 
         Text title = new Text(task.getTitle());
         title.setFill(Color.BLACK);
         title.setWrappingWidth(DAY_COL_W - 8);
         title.setLayoutX(4);
         title.setLayoutY(14);
+
         block.getChildren().add(title);
+        
 
         taskLayer.getChildren().add(block);
     }

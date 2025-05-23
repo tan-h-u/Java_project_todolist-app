@@ -11,12 +11,10 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
 
+import todolist.controller.TaskService;
 import todolist.view.task;
 import todolist.view.week;
-import todolist.model.TaskEvent;
-import todolist.model.TaskData;
-import todolist.model.Taskmodel;
-import todolist.model.Status;
+import todolist.model.*;
 
 
 import java.time.LocalDateTime;
@@ -27,6 +25,7 @@ import java.util.List;
  * 主畫面 (依任務狀態分組 + 新增按鈕 + Week 視圖切換)
  */
 public class viewmain {
+	
 
     public void start(Stage primaryStage) {
         /* ---------- 狀態區塊：尚未開始 / 執行中 / 已完成 ---------- */
@@ -47,7 +46,7 @@ public class viewmain {
 
         // 從資料庫載入所有任務
         for (Taskmodel task : TaskData.getAllTasks()) {  // ➜ 從 SQL 讀取
-        	VBox card = createTaskCard(task); // ✅ 傳整個物件進去
+        	VBox card = createTaskCard(primaryStage,task); // ✅ 傳整個物件進去
 
             switch (task.getStatus()) {                  // Status enum
                 case TO_DO       -> todoBox.getChildren().add(card);
@@ -55,8 +54,6 @@ public class viewmain {
                 case DONE        -> doneBox.getChildren().add(card);
             }
         }
-
-
 
         HBox taskPane = new HBox(20, todoBox, doingBox, doneBox);
         taskPane.setPadding(new Insets(10));
@@ -70,9 +67,10 @@ public class viewmain {
             -fx-min-height: 50px;
         """);
         addButton.setOnAction(e -> {
-            task addTaskWindow = new task();
+            task addTaskWindow = new task(() -> refreshTaskView(primaryStage, todoBox, doingBox, doneBox));
             addTaskWindow.start(primaryStage);
         });
+
         StackPane.setAlignment(addButton, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(addButton, new Insets(20));
 
@@ -87,7 +85,7 @@ public class viewmain {
             Parent newRoot = weekView.getView();
 
             double width  = 60 + 7 * 100;
-            double height = 32 + (23 - 7 + 1) * 40;
+            double height = 85 + (23 - 7 + 1) * 40;
 
             Scene scene   = new Scene(newRoot, width, height);
             primaryStage.setY(0);
@@ -105,40 +103,48 @@ public class viewmain {
     }
 
     /** 建立單一任務卡片 */
-    private VBox createTaskCard(Taskmodel task) {
+    private VBox createTaskCard(Stage primaryStage,Taskmodel task) {
         VBox box = new VBox();
         box.setPadding(new Insets(10));
         box.setSpacing(5);
         box.setPrefSize(180, Region.USE_COMPUTED_SIZE);
+        box.setAlignment(Pos.CENTER);
         box.setBackground(new Background(
             new BackgroundFill(Color.LIGHTGRAY, new CornerRadii(10), Insets.EMPTY)
-        ));
+        ));   
+        box.setOnMouseClicked(e -> {
+            taskdetail dlg = new taskdetail(primaryStage, task); // task 是迴圈中的 Taskmodel
+            dlg.show();
+        });
+
+        
 
         // 顯示標題
-        Text titleText = new Text("標題: " + task.getTitle());
-        titleText.setFont(Font.font(14));
-
-        // 顯示截止日期
-        Text dateText = new Text("截止: " + task.getDueDate());
-
-        // 顯示描述
-        Text descText = new Text("內容: " + task.getDescription());
-
-        // 顯示優先級
-        Text priorityText = new Text("優先級: " + task.getPriority());
-
-        // 顯示標籤
-        Text tagText = new Text("標籤: " + task.getTag());
-
-        // 顯示重複類型
-        Text repeatText = new Text("重複: " + task.getRepeatType());
-
-        // 顯示完成狀態
-        Text doneText = new Text(task.isCompleted() ? "✅ 已完成" : "⏳ 未完成");
-
-        box.getChildren().addAll(titleText, dateText, descText, priorityText, tagText, repeatText, doneText);
+        Text titleText = new Text( task.getTitle());
+        box.getChildren().addAll(titleText);
         return box;
+        
     }
+    private void refreshTaskView(Stage primaryStage, VBox todoBox, VBox doingBox, VBox doneBox) {
+        // 1. 清除原有任務卡（除了最上方的標題文字）
+    	todoBox.getChildren().remove(1, todoBox.getChildren().size());
+    	doingBox.getChildren().remove(1, doingBox.getChildren().size());
+    	doneBox.getChildren().remove(1, doneBox.getChildren().size());
+
+        // 2. 重新從 DB 撈最新任務（跳過快取）
+        List<Taskmodel> tasks = TaskDAO.getAllTasks();
+
+        // 3. 依狀態分類新增卡片
+        for (Taskmodel task : tasks) {
+            VBox card = createTaskCard(primaryStage, task);
+            switch (task.getStatus()) {
+                case TO_DO -> todoBox.getChildren().add(card);
+                case IN_PROGRESS -> doingBox.getChildren().add(card);
+                case DONE  -> doneBox.getChildren().add(card);
+            }
+        }
+    }
+
 
 
 }

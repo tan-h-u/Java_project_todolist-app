@@ -22,6 +22,18 @@ public class TaskData {
     }
 
     	
-    
+    public static void updateTask(Taskmodel task) {
+    	TaskDAO dao = new TaskDAO();
+        dao.updateTask(task);  // 呼叫 DAO 寫回資料庫
+
+        // 同步快取中的任務資料（可選）
+        for (int i = 0; i < tasks.size(); i++) {
+            if (tasks.get(i).getId() == task.getId()) {
+                tasks.set(i, task);
+                break;
+            }
+        }
+    }
+
     
 }

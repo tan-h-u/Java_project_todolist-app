@@ -19,6 +19,16 @@ import todolist.model.Status;
 import todolist.model.TaskData;
 
 public class task {
+	private Runnable onFinishCallback;
+
+	public task(Runnable onFinishCallback) {
+	    this.onFinishCallback = onFinishCallback;
+	}
+
+	public task() {
+	    this(null); // 保留原本無參版本
+	}
+
 
     public void start(Stage parentStage) {
         Stage taskStage = new Stage();
@@ -31,11 +41,11 @@ public class task {
         nameField.setPromptText("請輸入任務名稱");
 
         DatePicker dueDatePicker = new DatePicker();
-        Spinner<Integer> dueHourSpinner   = new Spinner<>(0, 23, 0);
+        Spinner<Integer> dueHourSpinner   = new Spinner<>(7, 23, 0);
         Spinner<Integer> dueMinuteSpinner = new Spinner<>(0, 59, 0);
         
         DatePicker startDatePicker = new DatePicker();
-        Spinner<Integer> startHourSpinner   = new Spinner<>(0, 23, 0);
+        Spinner<Integer> startHourSpinner   = new Spinner<>(7, 23, 0);
         Spinner<Integer> startMinuteSpinner = new Spinner<>(0, 59, 0);
 
         TextField locationField = new TextField();
@@ -73,18 +83,20 @@ public class task {
                 dueDatePicker.getValue(),
                 LocalTime.of(dueHourSpinner.getValue(), dueMinuteSpinner.getValue())
             );
+            
 
             // 建立 Taskmodel（Taskmodel 目前只收 LocalDate，因此傳 date 部分即可）
-            Taskmodel task = new Taskmodel(
-                title,
-                descriptionArea.getText(),
-                dueDateTime.toLocalDate(),           // 只存日期
-                parsePriority(priorityCombo.getValue()),
-                false,                              // completed 預設 false
-                tagField.getText(),
-                RepeatType.NONE,
-                Status.TO_DO
-            );
+            Taskmodel task = new Taskmodel();
+            task.setTitle(title);
+            task.setDescription(descriptionArea.getText());
+            task.setStartTime(startDateTime);   // ✅ 含時間
+            task.setEndTime(dueDateTime);       // ✅ 含時間
+            task.setPriority(parsePriority(priorityCombo.getValue()));
+            task.setCompleted(false);
+            task.setTag(tagField.getText());
+            task.setRepeatType(RepeatType.NONE);
+            task.setStatus(Status.TO_DO);
+
             TaskData.addTask(task);
             System.out.println("✅ 已儲存任務：" + task);
             // TODO: TaskData.addTask(task); 或 DAO.insert(task);
@@ -124,4 +136,5 @@ public class task {
             default   -> Priority.MEDIUM;
         };
     }
+    
 }

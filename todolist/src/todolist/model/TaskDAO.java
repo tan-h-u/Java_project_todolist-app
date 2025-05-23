@@ -18,8 +18,8 @@ public class TaskDAO {
         	//設定SQL佔位符
             stmt.setString(1, task.getTitle());
             stmt.setString(2, task.getDescription());
-            stmt.setDate  (3, Date.valueOf(task.getDueDate()));
-            stmt.setDate  (4, Date.valueOf(task.getDueDate()));
+            stmt.setTimestamp  (3, Timestamp.valueOf(task.getStartTime()));
+            stmt.setTimestamp  (4, Timestamp.valueOf(task.getDueTime()));
             stmt.setInt   (5, task.getPriority().getCode());
             stmt.setBoolean(6, task.isCompleted());
             stmt.setString(7, task.getTag());
@@ -56,7 +56,7 @@ public class TaskDAO {
                 t.setId(rs.getInt("id"));
                 t.setTitle(rs.getString("title"));
                 t.setDescription(rs.getString("description"));
-                t.setDueDate(rs.getDate("due_date").toLocalDate());
+                //t.setDueTime(rs.getDate("due_date").toLocalDate());
                 t.setPriority(Priority.fromCode(rs.getInt("priority")));
                 t.setCompleted(rs.getBoolean("is_completed"));
                 t.setTag(rs.getString("tag"));
@@ -73,11 +73,10 @@ public class TaskDAO {
     }
 
     /* 更新完成狀態 */
-    public void updateCompletion(int taskId, boolean completed) {
-        String sql = "UPDATE tasks SET is_completed = ? WHERE id = ?";
+    public void updateCompletion(int taskId) {
+        String sql = "UPDATE tasks SET WHERE id = ?";
         try (Connection c = DBConnector.getConnection();
              PreparedStatement s = c.prepareStatement(sql)) {
-            s.setBoolean(1, completed);
             s.setInt(2, taskId);
             s.executeUpdate();
         } catch (SQLException e) {
@@ -89,21 +88,22 @@ public class TaskDAO {
     public void updateTask(Taskmodel t) {
         String sql = """
             UPDATE tasks
-            SET title = ?, description = ?, due_date = ?, priority = ?, is_completed = ?, tag = ?, repeat_type = ?
+            SET title = ?, description = ?, start_date = ?, due_date = ?, priority = ?, is_completed = ?, tag = ?, repeat_type = ?, status = ?
             WHERE id = ?
         """;
         try (Connection c = DBConnector.getConnection();
              PreparedStatement s = c.prepareStatement(sql)) {
-
+            
             s.setString(1, t.getTitle());
             s.setString(2, t.getDescription());
-            s.setDate  (3, Date.valueOf(t.getDueDate()));
-            s.setInt   (4, t.getPriority().getCode());
-            s.setBoolean(5, t.isCompleted());
-            s.setString(6, t.getTag());
-            s.setString(7, t.getRepeatType().name());
-            s.setInt   (8, t.getId());
-
+            s.setTimestamp  (3, Timestamp.valueOf(t.getStartTime()));
+            s.setTimestamp  (4, Timestamp.valueOf(t.getDueTime()));
+            s.setInt   (5, t.getPriority().getCode());
+            s.setBoolean(6, t.isCompleted());
+            s.setString(7, t.getTag());
+            s.setString(8, t.getRepeatType().name());
+            s.setString(9, t.getStatus().name());
+            s.setInt   (10, t.getId());
             s.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
