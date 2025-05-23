@@ -1,7 +1,6 @@
 package todolist.view;
 
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -11,8 +10,8 @@ import javafx.scene.layout.HBox;
 
 
 import todolist.model.*;
+import todolist.controller.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -119,12 +118,11 @@ public class taskdetail {
 
     /*  儲存表單內容回 Taskmodel 並同步 DB  */
     private boolean applyChanges() {
-        // 基本驗證
         if (titleField.getText().trim().isEmpty()) {
             new Alert(Alert.AlertType.WARNING, "標題不可空白", ButtonType.OK).showAndWait();
             return false;
         }
-        // 讀值寫回 model
+
         task.setTitle(titleField.getText().trim());
         task.setDescription(descArea.getText());
 
@@ -140,10 +138,13 @@ public class taskdetail {
         task.setTag(tagField.getText());
         task.setCompleted(finishedChk.isSelected());
 
-        // 寫回資料層
-        TaskData.updateTask(task);  // 你需在 TaskData / DAO 實作 updateTask()
+        // ✅ 用實例呼叫非 static 方法
+        TaskService service = new TaskService();
+        service.updateTask(task);
+
         return true;
     }
+
 
     /*  字串轉優先級  */
     private Priority parsePriority(String s) {

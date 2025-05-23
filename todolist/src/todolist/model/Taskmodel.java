@@ -1,8 +1,6 @@
 package todolist.model;
 
 import java.time.LocalDateTime;
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 
 /** 任務實體 */
@@ -71,14 +69,6 @@ public class Taskmodel {
     	this.description = d; 
     }
 
-    /*
-    public LocalDate getDueDate(){
-    	return dueDate;
-    }
-    public void setDueDate(LocalDate due){
-    	this.dueDate = due; 
-    }
-	*/
     public LocalDateTime getStartTime() {
     	return startDate; 
     	}

@@ -63,6 +63,7 @@ public class TaskDAO {
                 t.setRepeatType(RepeatType.fromString(rs.getString("repeat_type")));
                 t.setStartTime(rs.getTimestamp("start_date").toLocalDateTime());
                 t.setEndTime(rs.getTimestamp("due_date").toLocalDateTime());
+                t.setStatus(Status.fromString(rs.getString("status")));
 
                 tasks.add(t);
             }
@@ -109,4 +110,37 @@ public class TaskDAO {
             e.printStackTrace();
         }
     }
+    
+    public void updateAllTaskStatuses() {			//更改status欄位值
+        String sql = """
+            UPDATE tasks
+			SET status = 
+			    CASE
+			        WHEN start_date > NOW() AND due_date > NOW() THEN 'TO_DO'
+			        WHEN start_date < NOW() AND due_date < NOW() THEN 'DONE'
+			        ELSE 'IN_PROGRESS'
+			    END
+        """;
+
+        try (Connection conn = DBConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void updateCompletion(int id, boolean completed) {
+        String sql = "UPDATE tasks SET is_completed = ? WHERE id = ?";
+
+        try (Connection conn = DBConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setBoolean(1, completed);  // ✅ 傳入 true/false
+            stmt.setInt(2, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }

@@ -4,14 +4,11 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import todolist.view.viewmain;
 
-/**
- * JavaFX 進入點：一開啟就載入 main 畫面
- */
-public class appmain extends Application {
+public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        // 直接把 primaryStage 交給 main
+        // 把主畫面交給 viewmain 處理（包含 Scene 設定）
         new viewmain().start(primaryStage);
     }
 
