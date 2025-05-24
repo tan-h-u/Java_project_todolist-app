@@ -7,6 +7,8 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.layout.HBox;
+import javafx.geometry.Pos;
+
 
 
 import todolist.model.*;
@@ -26,7 +28,8 @@ public class taskdetail {
 
     private final Taskmodel task;           // 當前編輯的任務
     private final Stage parentStage;
-
+    private final Runnable onEditDone;
+    private TaskService sharedService;
     /* ===== UI 元件 ===== */
     private final TextField titleField       = new TextField();
     private final TextArea  descArea         = new TextArea();
@@ -40,9 +43,11 @@ public class taskdetail {
     private final TextField tagField         = new TextField();
     private final CheckBox finishedChk       = new CheckBox("已完成");
 
-    public taskdetail(Stage parentStage, Taskmodel task) {
+    public taskdetail(Stage parentStage, Taskmodel task, Runnable onEditDone) {
         this.parentStage = parentStage;
         this.task        = task;
+        this.onEditDone = onEditDone;
+        
     }
 
     /** 顯示視窗 */
@@ -62,12 +67,42 @@ public class taskdetail {
                 dlg.close();
             }
         });
-        GridPane.setColumnSpan(saveBtn, 2);
-        grid.add(saveBtn, 0, 9);
+
+        // 刪除按鈕
+        Button deleteBtn = new Button("刪除");
+        deleteBtn.setOnAction(e -> {
+            // 確認對話框
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "確定要刪除這個任務嗎？", ButtonType.YES, ButtonType.NO);
+            alert.initOwner(dlg);
+            alert.setTitle("刪除確認");
+            alert.setHeaderText(null);
+
+            alert.showAndWait().ifPresent(response -> {
+                if (response == ButtonType.YES) {
+                    TaskService service = new TaskService();
+                    service.deleteTask(task);
+
+                    // 🔄 執行主畫面刷新（若有設定）
+                    if (onEditDone != null) {
+                        javafx.application.Platform.runLater(onEditDone);
+                    }
+
+                    dlg.close();
+                }
+            });
+        });
+
+
+        // 將按鈕加到表單底部
+        HBox buttonBox = new HBox(10, saveBtn, deleteBtn);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        GridPane.setColumnSpan(buttonBox, 2);
+        grid.add(buttonBox, 0, 9);
 
         dlg.setScene(new Scene(grid));
         dlg.showAndWait();
     }
+
 
     /*  建立表單  */
     private GridPane buildForm() {
@@ -116,7 +151,7 @@ public class taskdetail {
         finishedChk.setSelected(task.isCompleted());
     }
 
-    /*  儲存表單內容回 Taskmodel 並同步 DB  */
+
     private boolean applyChanges() {
         if (titleField.getText().trim().isEmpty()) {
             new Alert(Alert.AlertType.WARNING, "標題不可空白", ButtonType.OK).showAndWait();
@@ -140,6 +175,9 @@ public class taskdetail {
 
         // ✅ 用實例呼叫非 static 方法
         TaskService service = new TaskService();
+        if (onEditDone != null) {
+            javafx.application.Platform.runLater(onEditDone);  // ② 再刷新主畫面
+        }
         service.updateTask(task);
 
         return true;

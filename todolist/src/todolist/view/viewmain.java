@@ -9,6 +9,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
+import javafx.scene.input.MouseButton;
 
 import todolist.controller.TaskService;
 import todolist.model.Taskmodel;
@@ -57,11 +58,11 @@ public class viewmain {
         /* ---------- Week 按鈕 ---------- */
         Button weekButton = new Button("📅");
         weekButton.setStyle("""      		
-        					-fx-font-size: 14px;
-        					-fx-background-radius: 50%;
-        					-fx-min-width: 50px;
-        					-fx-min-height: 50px;
-        		          """);
+			-fx-font-size: 14px;
+			-fx-background-radius: 50%;
+			-fx-min-width: 50px;
+			-fx-min-height: 50px;
+          """);
         StackPane.setAlignment(weekButton, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(weekButton, new Insets(0, 20, 80, 0)); 
 
@@ -100,7 +101,7 @@ public class viewmain {
     private void populateColumns(Stage stage, VBox todo, VBox doing, VBox done) {
         List<Taskmodel> tasks = service.getSortedTasks();
         for (Taskmodel t : tasks) {
-            VBox card = createTaskCard(stage, t);
+        	VBox card = createTaskCard(stage, t, () -> refreshTaskView(stage, todo, doing, done));
             switch (t.getStatus()) {
                 case TO_DO       -> todo.getChildren().add(card);
                 case IN_PROGRESS -> doing.getChildren().add(card);
@@ -110,7 +111,7 @@ public class viewmain {
     }
 
     /** 建立任務卡片（點擊可開詳細視窗） */
-    private VBox createTaskCard(Stage stage, Taskmodel task) {
+    private VBox createTaskCard(Stage stage, Taskmodel task, Runnable onRefresh) {
         VBox box = new VBox();
         box.setPadding(new Insets(10));
         box.setSpacing(5);
@@ -128,10 +129,13 @@ public class viewmain {
 		 ));
 
 
-        box.setOnMouseClicked(e -> {
-            taskdetail dlg = new taskdetail(stage, task);
-            dlg.show();
-        });
+		 box.setOnMouseClicked(e -> {
+			    if (e.getButton() == MouseButton.PRIMARY) {
+			        taskdetail dlg = new taskdetail(stage, task, onRefresh);
+			        dlg.show();
+			    }
+			});
+
         
         box.getChildren().add(new Text(task.getTitle()));
         return box;

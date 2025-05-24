@@ -9,8 +9,8 @@ public class TaskDAO {
     /* 新增任務 */
     public static void addTask(Taskmodel task) {
         String sql = """
-            INSERT INTO tasks (title, description, start_date, due_date, priority, is_completed, tag, repeat_type, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO tasks (title, description, start_date, due_date, priority, is_completed, tag, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """;
         try (Connection conn = DBConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -23,8 +23,7 @@ public class TaskDAO {
             stmt.setInt   (5, task.getPriority().getCode());
             stmt.setBoolean(6, task.isCompleted());
             stmt.setString(7, task.getTag());
-            stmt.setString(8, task.getRepeatType().name());
-            stmt.setString(9, task.getStatus().name()); // 假設 status 是第 8 個參數
+            stmt.setString(8, task.getStatus().name()); // 假設 status 是第 8 個參數
 
 
             stmt.executeUpdate();
@@ -60,7 +59,6 @@ public class TaskDAO {
                 t.setPriority(Priority.fromCode(rs.getInt("priority")));
                 t.setCompleted(rs.getBoolean("is_completed"));
                 t.setTag(rs.getString("tag"));
-                t.setRepeatType(RepeatType.fromString(rs.getString("repeat_type")));
                 t.setStartTime(rs.getTimestamp("start_date").toLocalDateTime());
                 t.setEndTime(rs.getTimestamp("due_date").toLocalDateTime());
                 t.setStatus(Status.fromString(rs.getString("status")));
@@ -89,7 +87,7 @@ public class TaskDAO {
     public void updateTask(Taskmodel t) {
         String sql = """
             UPDATE tasks
-            SET title = ?, description = ?, start_date = ?, due_date = ?, priority = ?, is_completed = ?, tag = ?, repeat_type = ?, status = ?
+            SET title = ?, description = ?, start_date = ?, due_date = ?, priority = ?, is_completed = ?, tag = ?, status = ?
             WHERE id = ?
         """;
         try (Connection c = DBConnector.getConnection();
@@ -102,9 +100,8 @@ public class TaskDAO {
             s.setInt   (5, t.getPriority().getCode());
             s.setBoolean(6, t.isCompleted());
             s.setString(7, t.getTag());
-            s.setString(8, t.getRepeatType().name());
-            s.setString(9, t.getStatus().name());
-            s.setInt   (10, t.getId());
+            s.setString(8, t.getStatus().name());
+            s.setInt   (9, t.getId());
             s.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

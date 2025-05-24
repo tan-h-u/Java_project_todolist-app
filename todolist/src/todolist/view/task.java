@@ -50,6 +50,10 @@ public class task {
                 new Alert(Alert.AlertType.WARNING, "請輸入任務名稱").showAndWait();
                 return;
             }
+            if (priorityCbx.getValue() == null) {
+                new Alert(Alert.AlertType.WARNING, "請選擇優先級（必填）").showAndWait();
+                return;
+            }
             // 組合時間
             LocalDateTime start = LocalDateTime.of(
                     startDatePicker.getValue(),

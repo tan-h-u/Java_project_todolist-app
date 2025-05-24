@@ -64,4 +64,10 @@ public class TaskService {
         }
         return matches;
     }
+    public void deleteTask(Taskmodel task) {
+        if (task != null) {
+            deleteTask(task.getId());
+        }
+    }
+
 }
